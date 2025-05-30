@@ -12,13 +12,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
-import { Settings, LogOut, Crown } from "lucide-react"
+import { Settings, LogOut, Crown, User } from "lucide-react"
 import Link from "next/link"
 
 interface UserType {
   id: string
   email: string
   username: string
+  displayName?: string
   rank: string
   joinDate: string
 }
@@ -29,11 +30,19 @@ interface UserMenuProps {
 
 export function UserMenu({ onLogout }: UserMenuProps) {
   const [user, setUser] = useState<UserType | null>(null)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
 
   useEffect(() => {
     const userData = localStorage.getItem("aurora_user")
     if (userData) {
-      setUser(JSON.parse(userData))
+      const parsedUser = JSON.parse(userData)
+      setUser(parsedUser)
+
+      // Check for custom avatar
+      const userAvatar = localStorage.getItem(`aurora_user_avatar_${parsedUser.id}`)
+      if (userAvatar) {
+        setAvatarUrl(userAvatar)
+      }
     }
   }, [])
 
@@ -78,7 +87,10 @@ export function UserMenu({ onLogout }: UserMenuProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border-2 border-slate-700">
-            <AvatarImage src={`https://crafatar.com/avatars/${user.username}?size=40&overlay`} alt={user.username} />
+            <AvatarImage
+              src={avatarUrl || `https://crafatar.com/avatars/${user.username}?size=40&overlay`}
+              alt={user.username}
+            />
             <AvatarFallback className="bg-gradient-to-br from-purple-500 to-blue-500 text-white">
               {user.username.charAt(0).toUpperCase()}
             </AvatarFallback>
@@ -89,7 +101,7 @@ export function UserMenu({ onLogout }: UserMenuProps) {
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-2">
             <div className="flex items-center space-x-2">
-              <p className="text-sm font-medium leading-none text-slate-200">{user.username}</p>
+              <p className="text-sm font-medium leading-none text-slate-200">{user.displayName || user.username}</p>
               {user.rank !== "Member" && <Crown className="w-3 h-3 text-yellow-400" />}
             </div>
             <p className="text-xs leading-none text-slate-400">{user.email}</p>
@@ -99,15 +111,23 @@ export function UserMenu({ onLogout }: UserMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator className="bg-slate-800" />
-        <DropdownMenuItem className="text-slate-300 hover:bg-slate-800 hover:text-slate-200">
-          <span className="mr-2 h-4 w-4">Profile</span>
-        </DropdownMenuItem>
-        <DropdownMenuItem className="text-slate-300 hover:bg-slate-800 hover:text-slate-200">
-          <Settings className="mr-2 h-4 w-4" />
-          <span>Settings</span>
-        </DropdownMenuItem>
+        <Link href="/settings">
+          <DropdownMenuItem className="text-slate-300 hover:bg-slate-800 hover:text-slate-200 cursor-pointer">
+            <User className="mr-2 h-4 w-4" />
+            <span>Profile</span>
+          </DropdownMenuItem>
+        </Link>
+        <Link href="/settings?tab=account">
+          <DropdownMenuItem className="text-slate-300 hover:bg-slate-800 hover:text-slate-200 cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            <span>Settings</span>
+          </DropdownMenuItem>
+        </Link>
         <DropdownMenuSeparator className="bg-slate-800" />
-        <DropdownMenuItem className="text-red-400 hover:bg-red-500/10 hover:text-red-300" onClick={onLogout}>
+        <DropdownMenuItem
+          className="text-red-400 hover:bg-red-500/10 hover:text-red-300 cursor-pointer"
+          onClick={onLogout}
+        >
           <LogOut className="mr-2 h-4 w-4" />
           <span>Log out</span>
         </DropdownMenuItem>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useCallback } from "react"
 
 export function WebGLBackground() {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -11,6 +11,40 @@ export function WebGLBackground() {
   const timeLocationRef = useRef<WebGLUniformLocation | null>(null)
   const resolutionLocationRef = useRef<WebGLUniformLocation | null>(null)
   const bufferRef = useRef<WebGLBuffer | null>(null)
+
+  const render = useCallback((time: number, gl: WebGLRenderingContext, canvas: HTMLCanvasElement) => {
+    if (
+      !canvas ||
+      !programRef.current ||
+      positionLocationRef.current === null ||
+      texCoordLocationRef.current === null ||
+      timeLocationRef.current === null ||
+      resolutionLocationRef.current === null ||
+      bufferRef.current === null
+    )
+      return
+
+    time *= 0.001 // Convert to seconds
+
+    gl.clearColor(0, 0, 0, 1)
+    gl.clear(gl.COLOR_BUFFER_BIT)
+
+    gl.useProgram(programRef.current)
+
+    gl.enableVertexAttribArray(positionLocationRef.current)
+    gl.enableVertexAttribArray(texCoordLocationRef.current)
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, bufferRef.current)
+    gl.vertexAttribPointer(positionLocationRef.current, 2, gl.FLOAT, false, 16, 0)
+    gl.vertexAttribPointer(texCoordLocationRef.current, 2, gl.FLOAT, false, 16, 8)
+
+    gl.uniform1f(timeLocationRef.current, time)
+    gl.uniform2f(resolutionLocationRef.current, canvas.width, canvas.height)
+
+    gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
+
+    animationRef.current = requestAnimationFrame((newTime) => render(newTime, gl, canvas))
+  }, [])
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -31,7 +65,7 @@ export function WebGLBackground() {
       }
     `
 
-    // Fragment shader source for aurora effect
+    // Optimized fragment shader for better performance
     const fragmentShaderSource = `
       precision mediump float;
       varying vec2 v_texCoord;
@@ -40,39 +74,40 @@ export function WebGLBackground() {
       
       vec3 aurora(vec2 uv, float time) {
         vec2 p = uv * 2.0 - 1.0;
-        p.y += 0.3;
+        p.y += 0.2;
         
-        float wave1 = sin(p.x * 3.0 + time * 0.5) * 0.1;
-        float wave2 = sin(p.x * 5.0 + time * 0.7) * 0.05;
-        float wave3 = sin(p.x * 7.0 + time * 0.3) * 0.03;
+        // Simplified wave calculations for better performance
+        float wave1 = sin(p.x * 2.0 + time * 0.3) * 0.08;
+        float wave2 = sin(p.x * 3.0 + time * 0.5) * 0.04;
         
-        float dist = abs(p.y - wave1 - wave2 - wave3);
-        float glow = 1.0 / (dist * 20.0 + 1.0);
+        float dist = abs(p.y - wave1 - wave2);
+        float glow = 1.0 / (dist * 15.0 + 1.0);
         
-        vec3 color1 = vec3(0.5, 0.2, 0.8); // Purple
-        vec3 color2 = vec3(0.2, 0.5, 0.9); // Blue
-        vec3 color3 = vec3(0.3, 0.8, 0.6); // Cyan
+        // Simplified color mixing
+        vec3 color1 = vec3(0.4, 0.1, 0.7); // Deep purple
+        vec3 color2 = vec3(0.1, 0.4, 0.8); // Deep blue
+        vec3 color3 = vec3(0.2, 0.6, 0.5); // Teal
         
-        vec3 finalColor = mix(color1, color2, sin(time * 0.3 + p.x) * 0.5 + 0.5);
-        finalColor = mix(finalColor, color3, sin(time * 0.2 + p.x * 2.0) * 0.3 + 0.3);
+        vec3 finalColor = mix(color1, color2, sin(time * 0.2 + p.x) * 0.5 + 0.5);
+        finalColor = mix(finalColor, color3, sin(time * 0.15 + p.x * 1.5) * 0.3 + 0.3);
         
-        return finalColor * glow * 0.3;
+        return finalColor * glow * 0.25;
       }
       
       void main() {
         vec2 uv = gl_FragCoord.xy / u_resolution.xy;
         vec3 color = aurora(uv, u_time);
         
-        // Add stars
-        vec2 starUv = uv * 50.0;
+        // Reduced star density for better performance
+        vec2 starUv = uv * 30.0;
         vec2 starId = floor(starUv);
         vec2 starPos = fract(starUv) - 0.5;
         
         float starNoise = fract(sin(dot(starId, vec2(12.9898, 78.233))) * 43758.5453);
-        if (starNoise > 0.98) {
+        if (starNoise > 0.99) {
           float starDist = length(starPos);
-          float star = 1.0 / (starDist * 100.0 + 1.0);
-          color += vec3(star * 0.5);
+          float star = 1.0 / (starDist * 80.0 + 1.0);
+          color += vec3(star * 0.3);
         }
         
         gl_FragColor = vec4(color, 1.0);
@@ -148,40 +183,9 @@ export function WebGLBackground() {
       gl.viewport(0, 0, canvas.width, canvas.height)
     }
 
-    function render(time: number) {
-      if (
-        !canvas ||
-        !programRef.current ||
-        positionLocationRef.current === null ||
-        texCoordLocationRef.current === null
-      )
-        return
-
-      time *= 0.001 // Convert to seconds
-
-      gl.clearColor(0, 0, 0, 1)
-      gl.clear(gl.COLOR_BUFFER_BIT)
-
-      gl.useProgram(programRef.current)
-
-      gl.enableVertexAttribArray(positionLocationRef.current)
-      gl.enableVertexAttribArray(texCoordLocationRef.current)
-
-      gl.bindBuffer(gl.ARRAY_BUFFER, bufferRef.current)
-      gl.vertexAttribPointer(positionLocationRef.current, 2, gl.FLOAT, false, 16, 0)
-      gl.vertexAttribPointer(texCoordLocationRef.current, 2, gl.FLOAT, false, 16, 8)
-
-      gl.uniform1f(timeLocationRef.current, time)
-      gl.uniform2f(resolutionLocationRef.current, canvas.width, canvas.height)
-
-      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4)
-
-      animationRef.current = requestAnimationFrame(render)
-    }
-
     resize()
     window.addEventListener("resize", resize)
-    animationRef.current = requestAnimationFrame(render)
+    animationRef.current = requestAnimationFrame((time) => render(time, gl, canvas))
 
     return () => {
       window.removeEventListener("resize", resize)
@@ -189,13 +193,13 @@ export function WebGLBackground() {
         cancelAnimationFrame(animationRef.current)
       }
     }
-  }, [])
+  }, [render])
 
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full -z-10 opacity-30"
-      style={{ background: "linear-gradient(to bottom, #0f0f23, #1a1a2e)" }}
+      className="fixed inset-0 w-full h-full -z-10 opacity-20"
+      style={{ background: "#000000" }}
     />
   )
 }

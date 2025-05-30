@@ -4,14 +4,14 @@
 
 @layer base {
   :root {
-    --background: 222.2 84% 4.9%;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 0 0% 0%;
     --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
+    --popover: 0 0% 0%;
     --popover-foreground: 210 40% 98%;
     --primary: 217.2 91.2% 59.8%;
-    --primary-foreground: 222.2 84% 4.9%;
+    --primary-foreground: 0 0% 0%;
     --secondary: 217.2 32.6% 17.5%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217.2 32.6% 17.5%;
@@ -32,7 +32,7 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-black text-foreground;
   }
 }
 
@@ -56,4 +56,49 @@
 /* Smooth animations */
 * {
   transition: border-color 0.2s ease-in-out;
+}
+
+/* RGB color animation for h1 */
+@keyframes rgb-shift {
+  0% {
+    color: #ff0000;
+  }
+  16.66% {
+    color: #ff8000;
+  }
+  33.33% {
+    color: #ffff00;
+  }
+  50% {
+    color: #00ff00;
+  }
+  66.66% {
+    color: #0080ff;
+  }
+  83.33% {
+    color: #8000ff;
+  }
+  100% {
+    color: #ff0000;
+  }
+}
+
+.rgb-text {
+  animation: rgb-shift 3s linear infinite;
+  background: linear-gradient(45deg, #ff0000, #ff8000, #ffff00, #00ff00, #0080ff, #8000ff, #ff0000);
+  background-size: 400% 400%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rgb-gradient 3s ease-in-out infinite;
+}
+
+@keyframes rgb-gradient {
+  0%,
+  100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
 }
