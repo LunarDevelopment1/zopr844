@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Crown, Coins, Package, Zap, Star, AlertCircle } from "lucide-react"
+import { Crown, Coins, Package, Zap, Star, Shield, Sword, Home, AlertCircle } from "lucide-react"
 import Link from "next/link"
 import { WebGLBackground } from "@/components/webgl-background"
 import { FloatingParticles } from "@/components/floating-particles"
@@ -41,7 +41,7 @@ export default function ShopPage() {
     if (!user) {
       setShowLoginAlert(true)
       // Scroll to top to show alert
-      window.scrollTo({ top: 0, behavior: 'smooth' })
+      window.scrollTo({ top: 0, behavior: "smooth" })
       return
     }
 
@@ -155,12 +155,12 @@ export default function ShopPage() {
           <p className="text-xl text-slate-400 max-w-2xl mx-auto">
             Enhance your Aurora MC experience with ranks, coins, and exclusive items
           </p>
-          
+
           {showLoginAlert && (
             <Alert className="mt-6 border-orange-500/50 bg-orange-500/10 max-w-xl mx-auto">
               <AlertCircle className="h-4 w-4 text-orange-400" />
               <AlertDescription className="text-orange-400">
-                You need to be logged in to make a purchase. 
+                You need to be logged in to make a purchase.
                 <Link href="/login" className="ml-2 underline">
                   Login now
                 </Link>
@@ -224,7 +224,7 @@ export default function ShopPage() {
                           </li>
                         ))}
                       </ul>
-                      <Button 
+                      <Button
                         className={`w-full bg-gradient-to-r ${rank.color} hover:opacity-90 text-white`}
                         onClick={() => handlePurchase(rank)}
                       >
@@ -256,7 +256,7 @@ export default function ShopPage() {
                       <CardDescription className="text-xl font-bold text-blue-400">{pack.price}</CardDescription>
                     </CardHeader>
                     <CardContent>
-                      <Button 
+                      <Button
                         className="w-full bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white"
                         onClick={() => handlePurchase(pack)}
                       >
@@ -276,4 +276,72 @@ export default function ShopPage() {
                     className="bg-slate-900/50 border-slate-800 hover:border-green-500/50 transition-all duration-300"
                   >
                     <CardHeader className="text-center">
-                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-\
+                      <div className="w-12 h-12 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        {index === 0 && <Home className="w-6 h-6 text-white" />}
+                        {index === 1 && <Package className="w-6 h-6 text-white" />}
+                        {index === 2 && <Sword className="w-6 h-6 text-white" />}
+                        {index === 3 && <Shield className="w-6 h-6 text-white" />}
+                      </div>
+                      <CardTitle className="text-slate-200">{pack.name}</CardTitle>
+                      <CardDescription className="text-slate-400">{pack.description}</CardDescription>
+                      <CardDescription className="text-xl font-bold text-green-400">{pack.price}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-1 mb-6">
+                        {pack.items.map((item, itemIndex) => (
+                          <li key={itemIndex} className="flex items-center text-sm text-slate-300">
+                            <Star className="w-3 h-3 text-green-400 mr-2 flex-shrink-0" />
+                            {item}
+                          </li>
+                        ))}
+                      </ul>
+                      <Button
+                        className="w-full bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white"
+                        onClick={() => handlePurchase(pack)}
+                      >
+                        Purchase
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </section>
+
+      {/* Payment Info */}
+      <section className="py-16 px-4 bg-slate-900/30">
+        <div className="container mx-auto text-center">
+          <h2 className="text-2xl font-bold text-slate-200 mb-4">Secure Payment</h2>
+          <p className="text-slate-400 max-w-2xl mx-auto mb-8">
+            All purchases are processed securely through our payment provider. Items are delivered instantly to your
+            account.
+          </p>
+          <div className="flex justify-center items-center space-x-8 opacity-60">
+            <div className="text-slate-500 font-semibold">PayPal</div>
+            <div className="text-slate-500 font-semibold">Stripe</div>
+            <div className="text-slate-500 font-semibold">Credit Cards</div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t border-slate-800 py-8 px-4">
+        <div className="container mx-auto text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <Zap className="w-4 h-4 text-white" />
+            </div>
+            <span className="text-lg font-bold bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent">
+              Aurora MC
+            </span>
+          </div>
+          <p className="text-slate-400 text-sm">
+            © 2024 Aurora MC. All rights reserved. Not affiliated with Mojang Studios.
+          </p>
+        </div>
+      </footer>
+    </div>
+  )
+}
